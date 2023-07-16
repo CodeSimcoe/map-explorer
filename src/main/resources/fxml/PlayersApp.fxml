@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.Pane?>
+
+<Pane fx:id="playersPane" style="-fx-background-color: BLACK;" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.codesimcoe.mapexplorer.PlayersController">
+   <children>
+      <ImageView fx:id="mapImageView" fitHeight="150.0" fitWidth="200.0" onMouseDragged="#manageMouseDrag" pickOnBounds="true" preserveRatio="true" />
+   </children>
+</Pane>
