@@ -1,12 +1,12 @@
 package com.codesimcoe.mapexplorer;
 
-import java.io.IOException;
-import java.net.URL;
-
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+
+import java.io.IOException;
+import java.net.URL;
 
 public class MapExplorer {
 
@@ -15,12 +15,6 @@ public class MapExplorer {
 
     // Dungeon Master
     private final Stage dmStage;
-
-    private final DungeonMasterController dmController;
-
-
-    // Players
-    private final PlayersController playersController;
 
     public MapExplorer(final Stage dmStage) throws IOException {
 
@@ -31,7 +25,7 @@ public class MapExplorer {
         FXMLLoader dmLoader = new FXMLLoader(dmResource);
         dmLoader.load();
 
-        this.dmController = dmLoader.getController();
+        DungeonMasterController dmController = dmLoader.getController();
         Parent dmRoot = dmLoader.getRoot();
 
         // DM's Scene
@@ -43,10 +37,11 @@ public class MapExplorer {
         FXMLLoader playersLoader = new FXMLLoader(playersResource);
         playersLoader.load();
 
-        this.playersController = playersLoader.getController();
+        // Players
+        PlayersController playersController = playersLoader.getController();
         Parent playersRoot = playersLoader.getRoot();
 
-        this.dmController.setDungeonMasterPlayersEvents(this.playersController);
+        dmController.setDungeonMasterPlayersEvents(playersController);
 
         Stage playersStage = new Stage();
         Scene playersScene = new Scene(playersRoot, 800, 800);

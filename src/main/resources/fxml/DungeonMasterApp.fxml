@@ -66,12 +66,35 @@
             <Slider fx:id="fogOpacitySlider" max="1.0" />
             <Label text="Tool size" />
             <Slider fx:id="toolSizeSlider" max="200.0" />
+            <Label text="Tool shape" />
+            <HBox spacing="5.0">
+               <children>
+                  <ToggleButton fx:id="toolSquareShapeToggleButton" mnemonicParsing="false" prefWidth="25.0">
+                     <graphic>
+                        <ImageView pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/square.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <toggleGroup>
+                        <ToggleGroup fx:id="toolShapeToggleGroup" />
+                     </toggleGroup>
+                  </ToggleButton>
+                  <ToggleButton fx:id="toolCircleShapeToggleButton" mnemonicParsing="false" prefWidth="25.0" toggleGroup="$toolShapeToggleGroup">
+                     <graphic>
+                        <ImageView pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/circle.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </ToggleButton>
+               </children>
+            </HBox>
             <HBox spacing="5.0">
                <children>
                   <ToggleButton fx:id="fogToolToggleButton" mnemonicParsing="false" prefWidth="25.0">
-                     <toggleGroup>
-                        <ToggleGroup fx:id="toolToggleGroup" />
-                     </toggleGroup>
                      <graphic>
                         <ImageView pickOnBounds="true" preserveRatio="true">
                            <image>
@@ -79,8 +102,11 @@
                            </image>
                         </ImageView>
                      </graphic>
+                     <toggleGroup>
+                        <ToggleGroup fx:id="toolModeToggleGroup" />
+                     </toggleGroup>
                   </ToggleButton>
-                  <ToggleButton fx:id="eraserToolToggleButton" mnemonicParsing="false" prefWidth="25.0" toggleGroup="$toolToggleGroup">
+                  <ToggleButton fx:id="eraserToolToggleButton" mnemonicParsing="false" prefWidth="25.0" toggleGroup="$toolModeToggleGroup">
                      <graphic>
                         <ImageView pickOnBounds="true" preserveRatio="true">
                            <image>

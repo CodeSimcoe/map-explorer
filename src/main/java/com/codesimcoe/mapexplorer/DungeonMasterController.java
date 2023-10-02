@@ -1,5 +1,35 @@
 package com.codesimcoe.mapexplorer;
 
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.fxml.FXML;
+import javafx.geometry.Point2D;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Slider;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.image.Image;
+import javafx.scene.image.PixelFormat;
+import javafx.scene.image.WritableImage;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.transform.Affine;
+import javafx.scene.transform.NonInvertibleTransformException;
+import org.apache.commons.io.FilenameUtils;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -15,41 +45,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-
-import org.apache.commons.io.FilenameUtils;
-
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.fxml.FXML;
-import javafx.geometry.Point2D;
-import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Slider;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelFormat;
-import javafx.scene.image.WritableImage;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
-import javafx.scene.input.TransferMode;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.transform.Affine;
-import javafx.scene.transform.NonInvertibleTransformException;
-import javafx.stage.Stage;
 
 public class DungeonMasterController {
 
@@ -87,13 +82,24 @@ public class DungeonMasterController {
     private Rectangle toolOverlay;
 
     @FXML
+    private ToggleButton toolSquareShapeToggleButton;
+
+    @FXML
+    private ToggleButton toolCircleShapeToggleButton;
+
+    @FXML
+    private ToggleGroup toolShapeToggleGroup;
+
+    private ObjectProperty<ToolShape> toolShapeProperty;
+
+    @FXML
     private ToggleButton fogToolToggleButton;
 
     @FXML
     private ToggleButton eraserToolToggleButton;
 
     @FXML
-    private ToggleGroup toolToggleGroup;
+    private ToggleGroup toolModeToggleGroup;
 
     private ObjectProperty<ToolMode> toolModeProperty;
 
@@ -136,7 +142,32 @@ public class DungeonMasterController {
         this.imageGraphicsContext = this.imageCanvas.getGraphicsContext2D();
 
         // Tools binding
-        this.toolModeProperty = new SimpleObjectProperty<ToolMode>();
+        this.toolShapeProperty = new SimpleObjectProperty<>();
+        this.toolShapeProperty.addListener((observable, oldValue, newValue) -> {
+
+            switch (newValue) {
+                case SQUARE -> {
+                    this.toolSquareShapeToggleButton.setSelected(true);
+                }
+                case CIRCLE -> {
+                    this.toolCircleShapeToggleButton.setSelected(true);
+                }
+            }
+        });
+        this.toolShapeToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == this.toolSquareShapeToggleButton) {
+                this.toolShapeProperty.set(ToolShape.SQUARE);
+            } else if (newValue == this.toolCircleShapeToggleButton) {
+                this.toolShapeProperty.set(ToolShape.CIRCLE);
+            } else {
+//                this.toolModeProperty.set(ToolMode.NONE);
+//                this.toolOverlay.setStroke(Color.WHITE);
+            }
+        });
+        this.toolShapeProperty.set(ToolShape.SQUARE);
+
+
+        this.toolModeProperty = new SimpleObjectProperty<>();
         this.toolModeProperty.addListener((observable, oldValue, newValue) -> {
 
             boolean toolOverlayVisible;
@@ -155,7 +186,7 @@ public class DungeonMasterController {
 
             this.toolOverlay.setVisible(toolOverlayVisible);
         });
-        this.toolToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+        this.toolModeToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == this.fogToolToggleButton) {
                 this.toolModeProperty.set(ToolMode.FOG);
                 this.toolOverlay.setStroke(ColorConstants.BRUSH_OVERLAY);
@@ -183,7 +214,7 @@ public class DungeonMasterController {
         // Fog of war
         this.fogCanvas.opacityProperty().bind(this.fogOpacityProperty);
 
-        // XXX
+        // TODO
         // Load
         String img = "C:\\Users\\clem\\Desktop\\GL_VampireMansion_NormalMansion_Day.jpg";
         try (FileInputStream inputStream = new FileInputStream(img)) {
@@ -201,9 +232,7 @@ public class DungeonMasterController {
             Affine transform = this.imageGraphicsContext.getTransform();
             transform.prependScale(ratio, ratio);
             this.updateTransform(transform);
-//            System.out.println(ratio);
 
-//            this.draw();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -279,6 +308,7 @@ public class DungeonMasterController {
             objectOut.close();
             byte[] bytes = baos.toByteArray();
 
+            // TODO
             String filename = "C:\\Users\\clem\\Downloads\\explorer." + SAVE_FILE_EXTENSION;
             try (FileOutputStream fileStream = new FileOutputStream(filename)) {
                 fileStream.write(bytes);
@@ -456,12 +486,20 @@ public class DungeonMasterController {
         }
     }
 
+    // increaseValue can be negative (decrease case)
     private void updateToolSize(final int increaseValue) {
 
+        // New size (increased or decreased)
         int currentValue = this.toolSizeProperty.get();
         int newValue = currentValue + increaseValue;
 
         this.toolSizeProperty.set(newValue);
+
+        // Re-center tool on current position
+        // Otherwise, after size increase it is a bit off
+        double shift = increaseValue / 2.0;
+        this.toolOverlay.setTranslateX(this.toolOverlay.getTranslateX() - shift);
+        this.toolOverlay.setTranslateY(this.toolOverlay.getTranslateY() - shift);
     }
 
     private void draw() {
@@ -507,7 +545,7 @@ public class DungeonMasterController {
 
         try {
             Point2D point = transform.inverseTransform(event.getX(), event.getY());
-            size /= transform.getMxx();
+            size = (int) Math.round(size / transform.getMxx());
             int halfSize = size / 2;
 
             for (int i = 0; i < size; i++) {
@@ -584,56 +622,52 @@ public class DungeonMasterController {
     private void loadFile(final File file) {
         String extension = FilenameUtils.getExtension(file.getName());
 
-        switch (extension) {
-            case SAVE_FILE_EXTENSION:
-                // Decompress
-                try {
-                    byte[] bytes = Files.readAllBytes(file.toPath());
-                    ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-                    GZIPInputStream gzipIn = new GZIPInputStream(bais);
-                    ObjectInputStream objectIn = new ObjectInputStream(gzipIn);
-                    SaveData data = (SaveData) objectIn.readObject();
-                    objectIn.close();
+        if (extension.equals(SAVE_FILE_EXTENSION)) {// Decompress
+            try {
+                byte[] bytes = Files.readAllBytes(file.toPath());
+                ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+                GZIPInputStream gzipIn = new GZIPInputStream(bais);
+                ObjectInputStream objectIn = new ObjectInputStream(gzipIn);
+                SaveData data = (SaveData) objectIn.readObject();
+                objectIn.close();
 
-                    int size = data.width() * data.height();
-                    byte[] mapBuffer = new byte[size];
-                    byte[] fogBuffer = new byte[size];
-                    System.arraycopy(data.pixels(), 0, mapBuffer, 0, size);
-                    System.arraycopy(data.pixels(), size, fogBuffer, 0, size);
+                int size = data.width() * data.height();
+                byte[] mapBuffer = new byte[size];
+                byte[] fogBuffer = new byte[size];
+                System.arraycopy(data.pixels(), 0, mapBuffer, 0, size);
+                System.arraycopy(data.pixels(), size, fogBuffer, 0, size);
 
-                    WritableImage map = new WritableImage(data.width(), data.height());
-                    map.getPixelWriter().setPixels(
-                        0,
-                        0,
-                        data.width(),
-                        data.height(),
-                        PixelFormat.getByteBgraInstance(),
-                        mapBuffer,
-                        0,
-                        data.width() * 4
-                    );
-                    this.mapImage = map;
+                WritableImage map = new WritableImage(data.width(), data.height());
+                map.getPixelWriter().setPixels(
+                    0,
+                    0,
+                    data.width(),
+                    data.height(),
+                    PixelFormat.getByteBgraInstance(),
+                    mapBuffer,
+                    0,
+                    data.width() * 4
+                );
+                this.mapImage = map;
 
-                    this.fogImage.getPixelWriter().setPixels(
-                        0,
-                        0,
-                        data.width(),
-                        data.height(),
-                        PixelFormat.getByteBgraInstance(),
-                        fogBuffer,
-                        0,
-                        data.width() * 4
-                    );
+                this.fogImage.getPixelWriter().setPixels(
+                    0,
+                    0,
+                    data.width(),
+                    data.height(),
+                    PixelFormat.getByteBgraInstance(),
+                    fogBuffer,
+                    0,
+                    data.width() * 4
+                );
 
-                    this.draw();
+                this.draw();
 
-                } catch (IOException | ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
 
-                System.out.println("LOADED");
-
-            break;
+            System.out.println("LOADED");
         }
     }
 

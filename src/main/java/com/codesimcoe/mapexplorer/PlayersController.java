@@ -41,7 +41,7 @@ public class PlayersController implements DungeonMasterPlayersEvents {
             double delta = e.getDeltaY();
             Rectangle2D viewport = this.mapImageView.getViewport();
 
-            double scale = this.clamp(Math.pow(1.01, delta),
+            double scale = Math.clamp(Math.pow(1.01, delta),
 
                 // don't scale so we're zoomed in to fewer than MIN_PIXELS in any direction:
                 Math.min(10 / viewport.getWidth(), 10 / viewport.getHeight()),
@@ -67,10 +67,16 @@ public class PlayersController implements DungeonMasterPlayersEvents {
             // we then clamp this value so the image never scrolls out
             // of the imageview:
 
-            double newMinX = this.clamp(mouse.getX() - (mouse.getX() - viewport.getMinX()) * scale,
-                    0, this.width - newWidth);
-            double newMinY = this.clamp(mouse.getY() - (mouse.getY() - viewport.getMinY()) * scale,
-                    0, this.height - newHeight);
+            double newMinX = Math.clamp(
+                mouse.getX() - (mouse.getX() - viewport.getMinX()) * scale,
+                0,
+                this.width - newWidth
+            );
+            double newMinY = Math.clamp(
+                mouse.getY() - (mouse.getY() - viewport.getMinY()) * scale,
+                0,
+                this.height - newHeight
+            );
 
             this.mapImageView.setViewport(new Rectangle2D(newMinX, newMinY, newWidth, newHeight));
         });
@@ -133,7 +139,7 @@ public class PlayersController implements DungeonMasterPlayersEvents {
 
     @FXML
     private void manageMouseDrag(final MouseEvent event) {
-        System.out.println("PlayersController.manageMouseDrag()");
+//        System.out.println("PlayersController.manageMouseDrag()");
 
 //        Rectangle2D viewport = this.mapImageView.getViewport();
 
@@ -153,18 +159,10 @@ public class PlayersController implements DungeonMasterPlayersEvents {
         double maxX = width - viewport.getWidth();
         double maxY = height - viewport.getHeight();
 
-        double minX = this.clamp(viewport.getMinX() - delta.getX(), 0, maxX);
-        double minY = this.clamp(viewport.getMinY() - delta.getY(), 0, maxY);
+        double minX = Math.clamp(viewport.getMinX() - delta.getX(), 0, maxX);
+        double minY = Math.clamp(viewport.getMinY() - delta.getY(), 0, maxY);
 
         this.mapImageView.setViewport(new Rectangle2D(minX, minY, viewport.getWidth(), viewport.getHeight()));
-    }
-
-    private double clamp(final double value, final double min, final double max) {
-
-        if (value < min) {
-            return min;
-        }
-        return Math.min(value, max);
     }
 
     // convert mouse coordinates in the imageView to coordinates in the actual
