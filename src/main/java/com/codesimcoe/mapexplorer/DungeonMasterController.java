@@ -28,6 +28,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
+import javafx.stage.FileChooser;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.ByteArrayInputStream;
@@ -61,7 +62,7 @@ public class DungeonMasterController {
 
     private static final double ZOOM_SCALE_STEP = 1.10;
 
-    private static final String SAVE_FILE_EXTENSION = "mapexplorer";
+    private static final String SAVE_FILE_EXTENSION = "me";
 
     @FXML
     private StackPane dmStackPane;
@@ -144,14 +145,10 @@ public class DungeonMasterController {
         // Tools binding
         this.toolShapeProperty = new SimpleObjectProperty<>();
         this.toolShapeProperty.addListener((observable, oldValue, newValue) -> {
-
             switch (newValue) {
-                case SQUARE -> {
-                    this.toolSquareShapeToggleButton.setSelected(true);
-                }
-                case CIRCLE -> {
-                    this.toolCircleShapeToggleButton.setSelected(true);
-                }
+                case SQUARE -> this.toolSquareShapeToggleButton.setSelected(true);
+                case CIRCLE -> this.toolCircleShapeToggleButton.setSelected(true);
+                default -> throw new IllegalStateException("Unexpected value: " + newValue);
             }
         });
         this.toolShapeToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
@@ -216,7 +213,7 @@ public class DungeonMasterController {
 
         // TODO
         // Load
-        String img = "C:\\Users\\clem\\Desktop\\GL_VampireMansion_NormalMansion_Day.jpg";
+        String img = "C:\\Users\\clem\\Desktop\\G_MedievalJail_Original_Day.jpg";
         try (FileInputStream inputStream = new FileInputStream(img)) {
             this.mapImage = new Image(inputStream);
             this.imageWidth = (int) this.mapImage.getWidth();
@@ -264,6 +261,7 @@ public class DungeonMasterController {
 
     @FXML
     private void commit() {
+        // Send data to players
         this.dungeonMasterPlayersEvents.onCommit(this.mapImage, this.fogImage);
     }
 
@@ -320,7 +318,16 @@ public class DungeonMasterController {
 
     @FXML
     private void load() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Load map");
+        fileChooser.getExtensionFilters().add(
+          new FileChooser.ExtensionFilter("Map Explorer", "*." + SAVE_FILE_EXTENSION)
+        );
 
+        File file = fileChooser.showOpenDialog(this.dmStackPane.getScene().getWindow());
+        if (file != null) {
+          this.loadFile(file);
+        }
     }
 
     @FXML
@@ -508,6 +515,7 @@ public class DungeonMasterController {
 
         this.updateTransform(this.identityTransform);
 
+        // Clear with blur around edges
         this.fogGraphicsContext.clearRect(0, 0, this.imageWidth, this.imageHeight);
         this.imageGraphicsContext.setFill(Color.BLACK);
         this.imageGraphicsContext.fillRect(0, 0, this.imageWidth, this.imageHeight);
@@ -622,7 +630,8 @@ public class DungeonMasterController {
     private void loadFile(final File file) {
         String extension = FilenameUtils.getExtension(file.getName());
 
-        if (extension.equals(SAVE_FILE_EXTENSION)) {// Decompress
+        if (extension.equals(SAVE_FILE_EXTENSION)) {
+            // Decompress
             try {
                 byte[] bytes = Files.readAllBytes(file.toPath());
                 ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
@@ -666,8 +675,6 @@ public class DungeonMasterController {
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
-
-            System.out.println("LOADED");
         }
     }
 
