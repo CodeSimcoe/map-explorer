@@ -1,4 +1,4 @@
-package com.codesimcoe.mapexplorer;
+package com.codesimcoe.mapexplorer.save;
 
 import java.io.Serializable;
 

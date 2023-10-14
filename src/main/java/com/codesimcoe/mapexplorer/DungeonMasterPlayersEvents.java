@@ -8,6 +8,4 @@ import javafx.scene.image.Image;
 public interface DungeonMasterPlayersEvents {
 
     void onCommit(Image mapImage, Image fogImage);
-
-    void show();
 }

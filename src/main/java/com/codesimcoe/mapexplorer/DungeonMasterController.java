@@ -1,5 +1,7 @@
 package com.codesimcoe.mapexplorer;
 
+import com.codesimcoe.mapexplorer.save.SaveData;
+import com.codesimcoe.mapexplorer.save.SaveUtils;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -31,21 +33,13 @@ import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.FileChooser;
 import org.apache.commons.io.FilenameUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.nio.IntBuffer;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 public class DungeonMasterController {
 
@@ -270,8 +264,8 @@ public class DungeonMasterController {
 
         int width = (int) this.mapImage.getWidth();
         int height = (int) this.mapImage.getHeight();
-        int size = width * height;
-        byte[] pixels = new byte[2 * 4 * size];
+        int size = 4 * width * height;
+        byte[] pixels = new byte[2 * size];
 
         this.mapImage.getPixelReader().getPixels(
             0,
@@ -295,24 +289,14 @@ public class DungeonMasterController {
             width * 4
         );
 
+        // Save
+        String filename = "C:\\Users\\clem\\Downloads\\explorer." + SAVE_FILE_EXTENSION;
         SaveData data = new SaveData(width, height, pixels);
-
-        // Compress
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
-            GZIPOutputStream gzipOut = new GZIPOutputStream(baos);
-            ObjectOutputStream objectOut = new ObjectOutputStream(gzipOut);
-            objectOut.writeObject(data);
-            objectOut.close();
-            byte[] bytes = baos.toByteArray();
-
-            // TODO
-            String filename = "C:\\Users\\clem\\Downloads\\explorer." + SAVE_FILE_EXTENSION;
-            try (FileOutputStream fileStream = new FileOutputStream(filename)) {
-                fileStream.write(bytes);
-            }
+            SaveUtils.saveToFile(data, filename);
         } catch (IOException e) {
-            e.printStackTrace();
+            // TODO
+            throw new RuntimeException(e);
         }
     }
 
@@ -327,6 +311,48 @@ public class DungeonMasterController {
         File file = fileChooser.showOpenDialog(this.dmStackPane.getScene().getWindow());
         if (file != null) {
           this.loadFile(file);
+        }
+    }
+
+    private void loadFile(final File file) {
+        String extension = FilenameUtils.getExtension(file.getName());
+
+        if (extension.equals(SAVE_FILE_EXTENSION)) {
+            // Decompress
+            try {
+                SaveData data = SaveUtils.loadFromFile(file.getAbsolutePath());
+
+                int size = 4 * data.width() * data.height();
+
+                WritableImage map = new WritableImage(data.width(), data.height());
+                map.getPixelWriter().setPixels(
+                  0,
+                  0,
+                  data.width(),
+                  data.height(),
+                  PixelFormat.getByteBgraInstance(),
+                  data.pixels(),
+                  0,
+                  data.width() * 4
+                );
+                this.mapImage = map;
+
+                this.fogImage.getPixelWriter().setPixels(
+                  0,
+                  0,
+                  data.width(),
+                  data.height(),
+                  PixelFormat.getByteBgraInstance(),
+                  data.pixels(),
+                  size,
+                  data.width() * 4
+                );
+
+                this.draw();
+
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -387,45 +413,6 @@ public class DungeonMasterController {
         double dy = event.getY() - this.startY;
 
         Affine transform = this.imageGraphicsContext.getTransform();
-
-        double tx = transform.getTx();
-        double ty = transform.getTy();
-
-        double mxx = transform.getMxx();
-        double myy = transform.getMyy();
-
-//        System.out.println(tx + " " + tx / mxx);
-
-
-//        try {
-//            Point2D p = transform.inverseTransform(tx, ty);
-////            System.out.println(p);
-//        } catch (NonInvertibleTransformException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
-
-//        // Left
-//        if (tx > 0) {
-//            // Allow only left pan
-//            dx = Math.min(0, dx);
-//        }
-//
-//        // Right
-//        if (tx + this.imageWidth - CANVAS_WIDTH < 0) {
-//            dx = Math.max(0, dx);
-//        }
-//
-//        // Top
-//        if (ty > 0) {
-//            dy = Math.min(0, dy);
-//        }
-//
-//        // Bottom
-//        if (ty + this.imageHeight - CANVAS_HEIGHT < 0) {
-//            dy = Math.max(0, dy);
-//        }
-
         transform.prependTranslation(dx, dy);
         this.updateTransform(transform);
 
@@ -493,6 +480,24 @@ public class DungeonMasterController {
         }
     }
 
+    @FXML
+    private void rotateClockwise() {
+        this.rotate(90);
+    }
+
+    @FXML
+    private void rotateCounterClockwise() {
+        this.rotate(-90);
+    }
+
+    private void rotate(double angle) {
+        // Rotate map image
+        Affine transform = this.imageGraphicsContext.getTransform();
+        transform.prependRotation(angle);
+        this.updateTransform(transform);
+        this.draw();
+    }
+
     // increaseValue can be negative (decrease case)
     private void updateToolSize(final int increaseValue) {
 
@@ -515,7 +520,7 @@ public class DungeonMasterController {
 
         this.updateTransform(this.identityTransform);
 
-        // Clear with blur around edges
+        // Clear canvas
         this.fogGraphicsContext.clearRect(0, 0, this.imageWidth, this.imageHeight);
         this.imageGraphicsContext.setFill(Color.BLACK);
         this.imageGraphicsContext.fillRect(0, 0, this.imageWidth, this.imageHeight);
@@ -621,61 +626,11 @@ public class DungeonMasterController {
             }
 
         } catch (NonInvertibleTransformException e) {
-            e.printStackTrace();
+            // Should not happen as transform is set to be invertible
+            throw new IllegalStateException("Invalid transform : " + transform);
         }
 
         this.draw();
-    }
-
-    private void loadFile(final File file) {
-        String extension = FilenameUtils.getExtension(file.getName());
-
-        if (extension.equals(SAVE_FILE_EXTENSION)) {
-            // Decompress
-            try {
-                byte[] bytes = Files.readAllBytes(file.toPath());
-                ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-                GZIPInputStream gzipIn = new GZIPInputStream(bais);
-                ObjectInputStream objectIn = new ObjectInputStream(gzipIn);
-                SaveData data = (SaveData) objectIn.readObject();
-                objectIn.close();
-
-                int size = data.width() * data.height();
-                byte[] mapBuffer = new byte[size];
-                byte[] fogBuffer = new byte[size];
-                System.arraycopy(data.pixels(), 0, mapBuffer, 0, size);
-                System.arraycopy(data.pixels(), size, fogBuffer, 0, size);
-
-                WritableImage map = new WritableImage(data.width(), data.height());
-                map.getPixelWriter().setPixels(
-                    0,
-                    0,
-                    data.width(),
-                    data.height(),
-                    PixelFormat.getByteBgraInstance(),
-                    mapBuffer,
-                    0,
-                    data.width() * 4
-                );
-                this.mapImage = map;
-
-                this.fogImage.getPixelWriter().setPixels(
-                    0,
-                    0,
-                    data.width(),
-                    data.height(),
-                    PixelFormat.getByteBgraInstance(),
-                    fogBuffer,
-                    0,
-                    data.width() * 4
-                );
-
-                this.draw();
-
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     private void bindSlider(

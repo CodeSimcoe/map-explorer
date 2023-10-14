@@ -46,8 +46,9 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
 
-<HBox onKeyPressed="#manageKeyPress" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.codesimcoe.mapexplorer.DungeonMasterController">
+<HBox onKeyPressed="#manageKeyPress" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.codesimcoe.mapexplorer.DungeonMasterController">
    <children>
       <StackPane fx:id="dmStackPane" onDragDropped="#manageDragDrop" onDragOver="#manageDragOver" onMouseDragged="#manageMouseDragged" onMouseEntered="#manageMouseEntered" onMouseExited="#manageMouseExited" onMouseMoved="#manageMouseMoved" onMousePressed="#manageMousePressed" onMouseReleased="#manageMouseReleased" onScroll="#manageMouseWheel">
          <children>
@@ -62,9 +63,30 @@
       </StackPane>
       <VBox prefWidth="200.0" spacing="5.0">
          <children>
-            <Label text="Fog opacity" />
+            <HBox spacing="5.0">
+               <children>
+                  <Label text="Fog opacity" />
+                  <Label text="(ctrl + wheel)">
+                     <font>
+                        <Font size="10.0" />
+                     </font>
+                  </Label>
+               </children>
+            </HBox>
             <Slider fx:id="fogOpacitySlider" max="1.0" />
-            <Label text="Tool size" />
+            <HBox spacing="5.0">
+               <children>
+                  <Label text="Tool size" />
+                  <Label text="(shift + wheel)">
+                     <font>
+                        <Font size="10.0" />
+                     </font>
+                  </Label>
+               </children>
+               <VBox.margin>
+                  <Insets />
+               </VBox.margin>
+            </HBox>
             <Slider fx:id="toolSizeSlider" max="200.0" />
             <Label text="Tool shape" />
             <HBox spacing="5.0">
@@ -119,6 +141,29 @@
                <VBox.margin>
                   <Insets />
                </VBox.margin>
+            </HBox>
+            <Label text="Rotate" />
+            <HBox spacing="5.0">
+               <children>
+                  <Button fx:id="rotateCounterClockwise" mnemonicParsing="false" onAction="#rotateCounterClockwise" prefWidth="25.0">
+                     <graphic>
+                        <ImageView pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/rotate-counter-clockwise.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Button fx:id="rotateClockwise" mnemonicParsing="false" onAction="#rotateClockwise">
+                     <graphic>
+                        <ImageView pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../images/rotate-clockwise.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+               </children>
             </HBox>
             <Button mnemonicParsing="false" onAction="#restoreFog" prefWidth="100.0" text="Restore fog" />
             <Button mnemonicParsing="false" onAction="#commit" prefWidth="100.0" text="Commit" />

@@ -8,7 +8,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
 import javafx.scene.image.WritablePixelFormat;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.transform.Affine;
 import javafx.stage.Stage;
@@ -68,8 +67,6 @@ public class PlayersController implements DungeonMasterPlayersEvents {
 
         this.canvas.setOnScroll(e -> {
             double delta = e.getDeltaY();
-
-            System.out.println(e.getX() + " " + e.getY() + " " + delta);
 
             double scale = delta > 0 ? 1.1 : 0.9;
             Affine transform = this.graphicsContext.getTransform();
@@ -187,47 +184,4 @@ public class PlayersController implements DungeonMasterPlayersEvents {
         this.graphicsContext.setTransform(transform);
         this.graphicsContext.drawImage(this.image, 0, 0);
     }
-
-    @Override
-    public void show() {
-        // TODO Auto-generated method stub
-    }
-
-    @FXML
-    private void manageMouseDrag(final MouseEvent event) {
-//        Point2D dragPoint = this.imageViewToImage(new Point2D(event.getX(), event.getY()));
-//        this.shift(dragPoint.subtract(this.mouseDown.get()));
-//        this.mouseDown.set(this.imageViewToImage(new Point2D(event.getX(), event.getY())));
-    }
-
-//    private void shift(final Point2D delta) {
-//        Rectangle2D viewport = this.mapImageView.getViewport();
-//
-//        double w = this.mapImageView.getImage().getWidth();
-//        double h = this.mapImageView.getImage().getHeight();
-//
-//        double maxX = w - viewport.getWidth();
-//        double maxY = h - viewport.getHeight();
-//
-//        double minX = Math.clamp(viewport.getMinX() - delta.getX(), 0, maxX);
-//        double minY = Math.clamp(viewport.getMinY() - delta.getY(), 0, maxY);
-//
-//        this.mapImageView.setViewport(new Rectangle2D(minX, minY, viewport.getWidth(), viewport.getHeight()));
-//    }
-//
-//    // convert mouse coordinates in the imageView to coordinates in the actual image
-//    private Point2D imageViewToImage(final Point2D imageViewCoordinates) {
-//        double xProportion = imageViewCoordinates.getX() / this.mapImageView.getBoundsInLocal().getWidth();
-//        double yProportion = imageViewCoordinates.getY() / this.mapImageView.getBoundsInLocal().getHeight();
-//
-//        Rectangle2D viewport = this.mapImageView.getViewport();
-//        return new Point2D(
-//            viewport.getMinX() + xProportion * viewport.getWidth(),
-//            viewport.getMinY() + yProportion * viewport.getHeight()
-//        );
-//    }
-//
-//    private void reset(final double width, final double height) {
-//        this.mapImageView.setViewport(new Rectangle2D(0, 0, width, height));
-//    }
 }
