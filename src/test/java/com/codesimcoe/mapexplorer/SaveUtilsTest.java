@@ -41,7 +41,7 @@ public class SaveUtilsTest {
     @Test
     void testSaveLoad() {
 
-        String filename = TMP_DIR + "/test.me";
+        String filename = TMP_DIR + "/map-explorer-savetest.me";
         try {
             Files.deleteIfExists(Path.of(filename));
 

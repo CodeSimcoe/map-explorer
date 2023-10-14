@@ -120,6 +120,12 @@ public class PlayersController implements DungeonMasterPlayersEvents {
             this.imagePixels = new int[this.length];
             this.fogPixels = new int[this.length];
             this.resultPixels = new int[this.length];
+
+            // Default zoom
+            double ratio = this.canvas.getWidth() / this.width;
+            Affine transform = this.graphicsContext.getTransform();
+            transform.prependScale(ratio, ratio);
+            this.graphicsContext.setTransform(transform);
         }
 
         // Read content to array

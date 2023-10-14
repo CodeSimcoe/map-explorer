@@ -54,7 +54,7 @@
          <children>
             <Canvas fx:id="imageCanvas" focusTraversable="true" height="200.0" width="200.0" />
             <Canvas fx:id="fogCanvas" height="200.0" width="200.0" />
-            <Pane prefHeight="200.0" prefWidth="200.0">
+            <Pane>
                <children>
                   <Rectangle fx:id="toolOverlay" fill="TRANSPARENT" height="20.0" stroke="RED" strokeType="INSIDE" width="20.0" />
                </children>
@@ -176,7 +176,7 @@
                   </ImageView>
                </graphic>
             </Button>
-            <Button mnemonicParsing="false" onAction="#load" prefWidth="100.0" text="Load">
+            <Button mnemonicParsing="false" onAction="#openLoadSaveFileChooser" prefWidth="100.0" text="Load">
                <graphic>
                   <ImageView pickOnBounds="true" preserveRatio="true">
                      <image>

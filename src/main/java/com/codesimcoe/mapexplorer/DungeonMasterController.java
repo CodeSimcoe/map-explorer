@@ -10,6 +10,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -28,9 +29,12 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Window;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
@@ -39,6 +43,7 @@ import java.io.IOException;
 import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public class DungeonMasterController {
@@ -57,6 +62,11 @@ public class DungeonMasterController {
     private static final double ZOOM_SCALE_STEP = 1.10;
 
     private static final String SAVE_FILE_EXTENSION = "me";
+    private static final Set<String> ALLOWED_MAP_EXTENSIONS = Set.of("png", "jpg", "jpeg");
+    private static final ExtensionFilter EXTENSION_FILTER = new ExtensionFilter(
+      "Map Explorer",
+      "*." + SAVE_FILE_EXTENSION
+    );
 
     @FXML
     private StackPane dmStackPane;
@@ -84,8 +94,6 @@ public class DungeonMasterController {
 
     @FXML
     private ToggleGroup toolShapeToggleGroup;
-
-    private ObjectProperty<ToolShape> toolShapeProperty;
 
     @FXML
     private ToggleButton fogToolToggleButton;
@@ -118,7 +126,6 @@ public class DungeonMasterController {
     private DungeonMasterPlayersEvents dungeonMasterPlayersEvents;
 
     public DungeonMasterController() {
-
         // Default values
         this.fogOpacityProperty = new SimpleDoubleProperty(0.5);
         this.toolSizeProperty = new SimpleIntegerProperty(50);
@@ -137,8 +144,8 @@ public class DungeonMasterController {
         this.imageGraphicsContext = this.imageCanvas.getGraphicsContext2D();
 
         // Tools binding
-        this.toolShapeProperty = new SimpleObjectProperty<>();
-        this.toolShapeProperty.addListener((observable, oldValue, newValue) -> {
+        ObjectProperty<ToolShape> toolShapeProperty = new SimpleObjectProperty<>();
+        toolShapeProperty.addListener((observable, oldValue, newValue) -> {
             switch (newValue) {
                 case SQUARE -> this.toolSquareShapeToggleButton.setSelected(true);
                 case CIRCLE -> this.toolCircleShapeToggleButton.setSelected(true);
@@ -147,15 +154,14 @@ public class DungeonMasterController {
         });
         this.toolShapeToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == this.toolSquareShapeToggleButton) {
-                this.toolShapeProperty.set(ToolShape.SQUARE);
+                toolShapeProperty.set(ToolShape.SQUARE);
             } else if (newValue == this.toolCircleShapeToggleButton) {
-                this.toolShapeProperty.set(ToolShape.CIRCLE);
+                toolShapeProperty.set(ToolShape.CIRCLE);
             } else {
-//                this.toolModeProperty.set(ToolMode.NONE);
-//                this.toolOverlay.setStroke(Color.WHITE);
+                // No other tool shapes yet
             }
         });
-        this.toolShapeProperty.set(ToolShape.SQUARE);
+        toolShapeProperty.set(ToolShape.SQUARE);
 
 
         this.toolModeProperty = new SimpleObjectProperty<>();
@@ -191,10 +197,24 @@ public class DungeonMasterController {
         });
         this.toolModeProperty.set(ToolMode.ERASER);
 
-        this.bindSlider(this.fogOpacitySlider, MIN_FOG_OPACITY, MAX_FOG_OPACITY, 0, 0.25, this.fogOpacityProperty);
+        this.bindSlider(
+          this.fogOpacitySlider,
+          MIN_FOG_OPACITY,
+          MAX_FOG_OPACITY,
+          0,
+          0.25,
+          this.fogOpacityProperty
+        );
         this.fogOpacitySlider.valueProperty().bindBidirectional(this.fogOpacityProperty);
 
-        this.bindSlider(this.toolSizeSlider, MIN_TOOL_SIZE, MAX_TOOL_SIZE, 100, 50, this.toolSizeProperty);
+        this.bindSlider(
+          this.toolSizeSlider,
+          MIN_TOOL_SIZE,
+          MAX_TOOL_SIZE,
+          100,
+          50,
+          this.toolSizeProperty
+        );
         this.toolSizeSlider.valueProperty().bindBidirectional(this.toolSizeProperty);
 
         // Tool overlay
@@ -205,30 +225,18 @@ public class DungeonMasterController {
         // Fog of war
         this.fogCanvas.opacityProperty().bind(this.fogOpacityProperty);
 
-        // TODO
-        // Load
-        String img = "C:\\Users\\clem\\Desktop\\G_MedievalJail_Original_Day.jpg";
-        try (FileInputStream inputStream = new FileInputStream(img)) {
-            this.mapImage = new Image(inputStream);
-            this.imageWidth = (int) this.mapImage.getWidth();
-            this.imageHeight = (int) this.mapImage.getHeight();
 
-            this.fogImage = new WritableImage(
-                this.imageWidth,
-                this.imageHeight
-            );
+        // Help text, centered
+        // Take the text size into account
+        Text text = new Text("Drag and drop an image");
+        Bounds boundsInLocal = text.getBoundsInLocal();
 
-            // Default zoom
-            double ratio = (double) CANVAS_WIDTH / this.imageWidth;
-            Affine transform = this.imageGraphicsContext.getTransform();
-            transform.prependScale(ratio, ratio);
-            this.updateTransform(transform);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        this.restoreFog();
+        // Draw text
+        this.imageGraphicsContext.fillText(
+            "Drag and drop an image",
+            (CANVAS_WIDTH - boundsInLocal.getWidth()) / 2.0,
+            (CANVAS_HEIGHT - boundsInLocal.getHeight()) / 2.0
+        );
     }
 
     @FXML
@@ -289,11 +297,16 @@ public class DungeonMasterController {
             width * 4
         );
 
-        // Save
-        String filename = "C:\\Users\\clem\\Downloads\\explorer." + SAVE_FILE_EXTENSION;
+        // Open a save file chooser
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save map");
+        fileChooser.getExtensionFilters().add(EXTENSION_FILTER);
+        File file = fileChooser.showSaveDialog(this.getStageWindow());
+
+        // Effective save
         SaveData data = new SaveData(width, height, pixels);
         try {
-            SaveUtils.saveToFile(data, filename);
+            SaveUtils.saveToFile(data, file.getAbsolutePath());
         } catch (IOException e) {
             // TODO
             throw new RuntimeException(e);
@@ -301,20 +314,18 @@ public class DungeonMasterController {
     }
 
     @FXML
-    private void load() {
+    private void openLoadSaveFileChooser() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Load map");
-        fileChooser.getExtensionFilters().add(
-          new FileChooser.ExtensionFilter("Map Explorer", "*." + SAVE_FILE_EXTENSION)
-        );
+        fileChooser.getExtensionFilters().add(EXTENSION_FILTER);
 
-        File file = fileChooser.showOpenDialog(this.dmStackPane.getScene().getWindow());
+        File file = fileChooser.showOpenDialog(this.getStageWindow());
         if (file != null) {
-          this.loadFile(file);
+          this.loadSaveFile(file);
         }
     }
 
-    private void loadFile(final File file) {
+    private void loadSaveFile(final File file) {
         String extension = FilenameUtils.getExtension(file.getName());
 
         if (extension.equals(SAVE_FILE_EXTENSION)) {
@@ -374,7 +385,8 @@ public class DungeonMasterController {
         File file = files.get(0);
 
         // Load out of JFX thread
-        CompletableFuture.runAsync(() -> this.loadFile(file));
+        System.out.println("Loading file " + file.getName());
+        CompletableFuture.runAsync(() -> this.loadMapFile(file.getAbsolutePath()));
     }
 
     @FXML
@@ -474,9 +486,6 @@ public class DungeonMasterController {
         switch (code) {
             case ADD -> this.updateToolSize(TOOL_SIZE_STEP);
             case SUBTRACT -> this.updateToolSize(-TOOL_SIZE_STEP);
-            default -> {
-            }
-            // Nothing to do
         }
     }
 
@@ -492,8 +501,9 @@ public class DungeonMasterController {
 
     private void rotate(double angle) {
         // Rotate map image
+        // Pivot is current center
         Affine transform = this.imageGraphicsContext.getTransform();
-        transform.prependRotation(angle);
+        transform.prependRotation(angle, CANVAS_WIDTH / 2.0, CANVAS_HEIGHT / 2.0);
         this.updateTransform(transform);
         this.draw();
     }
@@ -655,5 +665,41 @@ public class DungeonMasterController {
 
     void setDungeonMasterPlayersEvents(final DungeonMasterPlayersEvents events) {
         this.dungeonMasterPlayersEvents = events;
+    }
+
+    private void loadMapFile(final String filename) {
+
+        // Ensure file is an image (allowed extension are png and jpegs)
+        String extension = FilenameUtils.getExtension(filename);
+        if (!ALLOWED_MAP_EXTENSIONS.contains(extension)) {
+            throw new IllegalArgumentException("Invalid file extension : " + extension);
+        }
+
+        try (FileInputStream inputStream = new FileInputStream(filename)) {
+            this.mapImage = new Image(inputStream);
+            this.imageWidth = (int) this.mapImage.getWidth();
+            this.imageHeight = (int) this.mapImage.getHeight();
+
+            this.fogImage = new WritableImage(
+                this.imageWidth,
+                this.imageHeight
+            );
+
+            // Default zoom
+            double ratio = (double) CANVAS_WIDTH / this.imageWidth;
+            Affine transform = this.imageGraphicsContext.getTransform();
+            transform.prependScale(ratio, ratio);
+            this.updateTransform(transform);
+
+            // Reset fog
+            this.restoreFog();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Window getStageWindow() {
+        return this.dmStackPane.getScene().getWindow();
     }
 }

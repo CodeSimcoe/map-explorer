@@ -33,21 +33,13 @@ public class MapExplorer {
         this.dmStage.setScene(dmScene);
 
         // Players' stage
-//        Stage playersStage = new Stage();
         URL playersResource = MapExplorer.class.getResource(PLAYERS_FXML);
         FXMLLoader playersLoader = new FXMLLoader(playersResource);
         playersLoader.load();
 
         // Players
         PlayersController playersController = playersLoader.getController();
-//        playersController.setStage(playersStage);
-//        Parent playersRoot = playersLoader.getRoot();
-
         dmController.setDungeonMasterPlayersEvents(playersController);
-
-//        Scene playersScene = new Scene(playersRoot, 800, 800);
-//        playersStage.setScene(playersScene);
-//        playersStage.show();
 
         dmStage.setOnCloseRequest(e -> this.exitApplication());
     }
