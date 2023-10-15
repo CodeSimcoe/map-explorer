@@ -45,9 +45,9 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
-
 <HBox onKeyPressed="#manageKeyPress" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.codesimcoe.mapexplorer.DungeonMasterController">
    <children>
       <StackPane fx:id="dmStackPane" onDragDropped="#manageDragDrop" onDragOver="#manageDragOver" onMouseDragged="#manageMouseDragged" onMouseEntered="#manageMouseEntered" onMouseExited="#manageMouseExited" onMouseMoved="#manageMouseMoved" onMousePressed="#manageMousePressed" onMouseReleased="#manageMouseReleased" onScroll="#manageMouseWheel">
@@ -56,7 +56,8 @@
             <Canvas fx:id="fogCanvas" height="200.0" width="200.0" />
             <Pane>
                <children>
-                  <Rectangle fx:id="toolOverlay" fill="TRANSPARENT" height="20.0" stroke="RED" strokeType="INSIDE" width="20.0" />
+                  <Rectangle fx:id="rectangleToolOverlay" fill="TRANSPARENT" strokeType="INSIDE" />
+                  <Circle fx:id="circleToolOverlay" fill="TRANSPARENT" strokeType="INSIDE" />
                </children>
             </Pane>
          </children>

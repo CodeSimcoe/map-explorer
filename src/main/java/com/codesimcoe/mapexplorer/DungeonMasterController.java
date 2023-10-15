@@ -2,6 +2,9 @@ package com.codesimcoe.mapexplorer;
 
 import com.codesimcoe.mapexplorer.save.SaveData;
 import com.codesimcoe.mapexplorer.save.SaveUtils;
+import com.codesimcoe.mapexplorer.style.ColorConstants;
+import com.codesimcoe.mapexplorer.style.StyleConstants;
+import com.codesimcoe.mapexplorer.style.StyleUtils;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -28,6 +31,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Affine;
@@ -84,7 +88,10 @@ public class DungeonMasterController {
     private Slider toolSizeSlider;
 
     @FXML
-    private Rectangle toolOverlay;
+    private Rectangle rectangleToolOverlay;
+
+    @FXML
+    private Circle circleToolOverlay;
 
     @FXML
     private ToggleButton toolSquareShapeToggleButton;
@@ -163,7 +170,6 @@ public class DungeonMasterController {
         });
         toolShapeProperty.set(ToolShape.SQUARE);
 
-
         this.toolModeProperty = new SimpleObjectProperty<>();
         this.toolModeProperty.addListener((observable, oldValue, newValue) -> {
 
@@ -181,18 +187,23 @@ public class DungeonMasterController {
                 default -> toolOverlayVisible = false;
             }
 
-            this.toolOverlay.setVisible(toolOverlayVisible);
+            this.setToolVisible(toolOverlayVisible);
         });
+
         this.toolModeToggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == this.fogToolToggleButton) {
                 this.toolModeProperty.set(ToolMode.FOG);
-                this.toolOverlay.setStroke(ColorConstants.BRUSH_OVERLAY);
+                StyleUtils.setStyleClass(this.rectangleToolOverlay, StyleConstants.CLASS_BRUSH_OVERLAY);
+                StyleUtils.setStyleClass(this.circleToolOverlay, StyleConstants.CLASS_BRUSH_OVERLAY);
             } else if (newValue == this.eraserToolToggleButton) {
                 this.toolModeProperty.set(ToolMode.ERASER);
-                this.toolOverlay.setStroke(ColorConstants.ERASER_OVERLAY);
+                StyleUtils.setStyleClass(this.rectangleToolOverlay, StyleConstants.CLASS_ERASER_OVERLAY);
+                StyleUtils.setStyleClass(this.circleToolOverlay, StyleConstants.CLASS_ERASER_OVERLAY);
             } else {
+                // TODO
                 this.toolModeProperty.set(ToolMode.NONE);
-                this.toolOverlay.setStroke(Color.WHITE);
+                this.rectangleToolOverlay.setStroke(Color.WHITE);
+                this.circleToolOverlay.setStroke(Color.WHITE);
             }
         });
         this.toolModeProperty.set(ToolMode.ERASER);
@@ -218,9 +229,11 @@ public class DungeonMasterController {
         this.toolSizeSlider.valueProperty().bindBidirectional(this.toolSizeProperty);
 
         // Tool overlay
-        this.toolOverlay.setFill(Color.TRANSPARENT);
-        this.toolOverlay.widthProperty().bind(this.toolSizeProperty);
-        this.toolOverlay.heightProperty().bind(this.toolSizeProperty);
+//        this.toolOverlay.setFill(Color.TRANSPARENT);
+        this.rectangleToolOverlay.widthProperty().bind(this.toolSizeProperty);
+        this.rectangleToolOverlay.heightProperty().bind(this.toolSizeProperty);
+
+        this.circleToolOverlay.radiusProperty().bind(this.toolSizeProperty.divide(2));
 
         // Fog of war
         this.fogCanvas.opacityProperty().bind(this.fogOpacityProperty);
@@ -237,6 +250,23 @@ public class DungeonMasterController {
             (CANVAS_WIDTH - boundsInLocal.getWidth()) / 2.0,
             (CANVAS_HEIGHT - boundsInLocal.getHeight()) / 2.0
         );
+    }
+
+    private ToolShape getSelectedToolShape() {
+        // Get current selected tool shape
+        ToggleButton selectedToolShape = (ToggleButton) this.toolShapeToggleGroup.getSelectedToggle();
+        return selectedToolShape == this.toolSquareShapeToggleButton ? ToolShape.SQUARE : ToolShape.CIRCLE;
+    }
+
+    private void setToolVisible(final boolean visible) {
+        ToolShape shape = this.getSelectedToolShape();
+        if (shape == ToolShape.SQUARE) {
+            this.rectangleToolOverlay.setVisible(visible);
+            this.circleToolOverlay.setVisible(false);
+        } else {
+            this.circleToolOverlay.setVisible(visible);
+            this.rectangleToolOverlay.setVisible(false);
+        }
     }
 
     @FXML
@@ -471,12 +501,12 @@ public class DungeonMasterController {
 
     @FXML
     private void manageMouseEntered() {
-        this.toolOverlay.setVisible(true);
+        this.setToolVisible(true);
     }
 
     @FXML
     private void manageMouseExited() {
-        this.toolOverlay.setVisible(false);
+        this.setToolVisible(false);
     }
 
     @FXML
@@ -499,7 +529,7 @@ public class DungeonMasterController {
         this.rotate(-90);
     }
 
-    private void rotate(double angle) {
+    private void rotate(final double angle) {
         // Rotate map image
         // Pivot is current center
         Affine transform = this.imageGraphicsContext.getTransform();
@@ -520,8 +550,10 @@ public class DungeonMasterController {
         // Re-center tool on current position
         // Otherwise, after size increase it is a bit off
         double shift = increaseValue / 2.0;
-        this.toolOverlay.setTranslateX(this.toolOverlay.getTranslateX() - shift);
-        this.toolOverlay.setTranslateY(this.toolOverlay.getTranslateY() - shift);
+        this.rectangleToolOverlay.setTranslateX(this.rectangleToolOverlay.getTranslateX() - shift);
+        this.rectangleToolOverlay.setTranslateY(this.rectangleToolOverlay.getTranslateY() - shift);
+        this.circleToolOverlay.setTranslateX(this.circleToolOverlay.getTranslateX() - shift);
+        this.circleToolOverlay.setTranslateY(this.circleToolOverlay.getTranslateY() - shift);
     }
 
     private void draw() {
@@ -545,13 +577,16 @@ public class DungeonMasterController {
 
         double halfSize = this.toolSizeProperty.get() / 2.0;
 
-        this.toolOverlay.setTranslateX(x - halfSize);
-        this.toolOverlay.setTranslateY(y - halfSize);
+        this.rectangleToolOverlay.setTranslateX(x - halfSize);
+        this.rectangleToolOverlay.setTranslateY(y - halfSize);
+
+        this.circleToolOverlay.setTranslateX(x);
+        this.circleToolOverlay.setTranslateY(y);
     }
 
     private void applyTool(final MouseEvent event) {
 
-        int size = this.toolSizeProperty.get();
+        int toolSize = this.toolSizeProperty.get();
 
         Affine transform = this.fogGraphicsContext.getTransform();
 
@@ -567,9 +602,43 @@ public class DungeonMasterController {
         }
 
         try {
+            // Apply transform
             Point2D point = transform.inverseTransform(event.getX(), event.getY());
-            size = (int) Math.round(size / transform.getMxx());
+            int size = (int) Math.round(toolSize / transform.getMxx());
             int halfSize = size / 2;
+
+//            int w;
+//            int h;
+//            int x = (int) point.getX() - halfSize;
+//            int y = (int) point.getY() - halfSize;
+//            if (x < 0) {
+//                w = x + size;
+//                x = 0;
+//            } else if (x + size > this.imageWidth) {
+//                w = size - (x + size - this.imageWidth);
+//            } else {
+//                w = size;
+//            }
+//
+//            if (y < 0) {
+//                h = y + size;
+//                y = 0;
+//            } else if (y + size > this.imageHeight) {
+//                h = size - (y + size - this.imageHeight);
+//            } else {
+//                h = size;
+//            }
+//
+//            this.fogImage.getPixelWriter().setPixels(
+//                x,
+//                y,
+//                w,
+//                h,
+//                PixelFormat.getIntArgbInstance(),
+//                new int[size * size],
+//                0,
+//                size
+//            );
 
             for (int i = 0; i < size; i++) {
 
@@ -580,49 +649,7 @@ public class DungeonMasterController {
 
                         int y = (int) point.getY() + j - halfSize;
                         if (y > 0 && y < this.imageHeight) {
-
                             // Erase or restore fog (depending on applied color)
-
-                            //
-//                            int transition = size / 5;
-//
-//                            int currentColor = this.fogImage.getPixelReader().getArgb(x, y);
-////                            Color currentColor = this.fogImage.getPixelReader().getColor(x, y);
-//
-//                            boolean edge = false;
-//                            for (int t = 0; t < transition; t++) {
-//
-//                                float factor = 1 - ((float) t) / transition;
-//
-//                                if (i == t || i == size - 1 - t || j == t || j == size - 1 - t) {
-//
-//                                    int alpha = 0xff & (currentColor >> 24);
-//                                    int newAlpha = Math.round(alpha * factor);
-//
-//                                    int a = newAlpha;
-//                                    int r = (int) (color.getRed() * 255);
-//                                    int g = (int) (color.getGreen() * 255);
-//                                    int b = (int) (color.getBlue() * 255);
-//                                    int argb = (a << 24) | (r << 16) | (g << 8) | b;
-//
-//                                    this.fogImage.getPixelWriter().setArgb(
-//                                        x,
-//                                        y,
-//                                        argb
-//                                    );
-//
-//                                    edge = true;
-//                                    break;
-//                                }
-//                            }
-//
-//                            if (!edge) {
-//                                this.fogImage.getPixelWriter().setColor(
-//                                    x,
-//                                    y,
-//                                    Color.TRANSPARENT
-//                                );
-//                            }
 
                             // No blur around edges
                             this.fogImage.getPixelWriter().setColor(

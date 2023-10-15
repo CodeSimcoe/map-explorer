@@ -1,5 +1,6 @@
 package com.codesimcoe.mapexplorer;
 
+import com.codesimcoe.mapexplorer.style.StyleUtils;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -49,6 +50,8 @@ public class PlayersController implements DungeonMasterPlayersEvents {
     private void initialize() {
 
         Scene playersScene = new Scene(this.root, 800, 800);
+        StyleUtils.setTheme(playersScene);
+
         this.stage.setScene(playersScene);
         this.stage.show();
 
@@ -66,9 +69,23 @@ public class PlayersController implements DungeonMasterPlayersEvents {
         });
 
         this.canvas.setOnScroll(e -> {
+
             double delta = e.getDeltaY();
 
-            double scale = delta > 0 ? 1.1 : 0.9;
+            double scale;
+            if (e.isControlDown()) {
+                // When control is down, lower scale (to allow precise zooming)
+                scale = 1.005;
+            } else {
+                // Regular scale
+                scale = 1.1;
+            }
+
+            if (delta < 0) {
+                // De-zoom
+                scale = 1 / scale;
+            }
+
             Affine transform = this.graphicsContext.getTransform();
             transform.prependScale(scale, scale, e.getX(), e.getY());
             this.graphicsContext.setTransform(transform);

@@ -1,5 +1,6 @@
 package com.codesimcoe.mapexplorer;
 
+import com.codesimcoe.mapexplorer.style.StyleUtils;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -31,6 +32,8 @@ public class MapExplorer {
         // DM's Scene
         Scene dmScene = new Scene(dmRoot);
         this.dmStage.setScene(dmScene);
+
+        StyleUtils.setTheme(dmScene);
 
         // Players' stage
         URL playersResource = MapExplorer.class.getResource(PLAYERS_FXML);

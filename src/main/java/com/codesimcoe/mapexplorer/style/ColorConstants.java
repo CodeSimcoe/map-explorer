@@ -1,10 +1,9 @@
-package com.codesimcoe.mapexplorer;
+package com.codesimcoe.mapexplorer.style;
 
-import javafx.scene.paint.Color;
-
-public class ColorConstants {
+public final class ColorConstants {
 
     /**
+     *   Sample code used to compute this value
      *   Color color = Color.BLACK;
      *   int a = 255;
      *   int r = (int) (color.getRed() * 255);
@@ -13,9 +12,6 @@ public class ColorConstants {
      *   int argb = (a << 24) | (r << 16) | (g << 8) | b;
      */
     public static final int BLACK_ARGB = -16777216;
-
-    public static final Color ERASER_OVERLAY = Color.RED;
-    public static final Color BRUSH_OVERLAY = Color.GREEN;
 
     private ColorConstants() {
         // Non-instantiable
