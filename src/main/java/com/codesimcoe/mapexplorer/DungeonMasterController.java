@@ -17,11 +17,13 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Slider;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelFormat;
+import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.KeyCode;
@@ -110,6 +112,9 @@ public class DungeonMasterController {
 
     @FXML
     private ToggleGroup toolModeToggleGroup;
+
+    @FXML
+    private ColorPicker backgroundColorPicker;
 
     private ObjectProperty<ToolMode> toolModeProperty;
 
@@ -229,7 +234,6 @@ public class DungeonMasterController {
         this.toolSizeSlider.valueProperty().bindBidirectional(this.toolSizeProperty);
 
         // Tool overlay
-//        this.toolOverlay.setFill(Color.TRANSPARENT);
         this.rectangleToolOverlay.widthProperty().bind(this.toolSizeProperty);
         this.rectangleToolOverlay.heightProperty().bind(this.toolSizeProperty);
 
@@ -238,6 +242,11 @@ public class DungeonMasterController {
         // Fog of war
         this.fogCanvas.opacityProperty().bind(this.fogOpacityProperty);
 
+        // Background color
+        this.backgroundColorPicker.setOnAction(e -> {
+            Color color = this.backgroundColorPicker.getValue();
+            this.dungeonMasterPlayersEvents.onBackgroundColorChanged(color);
+        });
 
         // Help text, centered
         // Take the text size into account
@@ -605,61 +614,12 @@ public class DungeonMasterController {
             // Apply transform
             Point2D point = transform.inverseTransform(event.getX(), event.getY());
             int size = (int) Math.round(toolSize / transform.getMxx());
-            int halfSize = size / 2;
 
-//            int w;
-//            int h;
-//            int x = (int) point.getX() - halfSize;
-//            int y = (int) point.getY() - halfSize;
-//            if (x < 0) {
-//                w = x + size;
-//                x = 0;
-//            } else if (x + size > this.imageWidth) {
-//                w = size - (x + size - this.imageWidth);
-//            } else {
-//                w = size;
-//            }
-//
-//            if (y < 0) {
-//                h = y + size;
-//                y = 0;
-//            } else if (y + size > this.imageHeight) {
-//                h = size - (y + size - this.imageHeight);
-//            } else {
-//                h = size;
-//            }
-//
-//            this.fogImage.getPixelWriter().setPixels(
-//                x,
-//                y,
-//                w,
-//                h,
-//                PixelFormat.getIntArgbInstance(),
-//                new int[size * size],
-//                0,
-//                size
-//            );
-
-            for (int i = 0; i < size; i++) {
-
-                int x = (int) point.getX() + i - halfSize;
-                if (x > 0 && x < this.imageWidth) {
-
-                    for (int j = 0; j < size; j++) {
-
-                        int y = (int) point.getY() + j - halfSize;
-                        if (y > 0 && y < this.imageHeight) {
-                            // Erase or restore fog (depending on applied color)
-
-                            // No blur around edges
-                            this.fogImage.getPixelWriter().setColor(
-                                x,
-                                y,
-                                color
-                            );
-                        }
-                    }
-                }
+            // Get selected tool shape
+            ToolShape toolShape = this.getSelectedToolShape();
+            switch (toolShape) {
+                case SQUARE -> this.applySquareTool(point, size, color);
+                case CIRCLE -> this.applyCircleTool(point, size, color);
             }
 
         } catch (NonInvertibleTransformException e) {
@@ -668,6 +628,66 @@ public class DungeonMasterController {
         }
 
         this.draw();
+    }
+
+    private void applySquareTool(final Point2D center, final int size, final Color color) {
+
+        int halfSize = size / 2;
+
+        // Compute rectangle bounds
+        int minX = Math.max(0, (int) center.getX() - halfSize);
+        int maxX = Math.min(this.imageWidth - 1, (int) center.getX() + halfSize);
+        int minY = Math.max(0, (int) center.getY() - halfSize);
+        int maxY = Math.min(this.imageHeight - 1, (int) center.getY() + halfSize);
+
+        // Create a pixel buffer filled with the desired color
+        int bufferWidth = maxX - minX + 1;
+        int bufferHeight = maxY - minY + 1;
+        int bufferSize = bufferWidth * bufferHeight;
+        int[] buffer = new int[bufferSize];
+
+        // Color to int representation
+        int argb = ((int) (color.getRed() * 255) << 16)
+          | ((int) (color.getGreen() * 255) << 8)
+          | ((int) (color.getBlue() * 255))
+          | ((int) (color.getOpacity() * 255) << 24);
+        Arrays.fill(buffer, argb);
+
+        // Set the pixels in a single call for performance purpose
+        this.fogImage.getPixelWriter().setPixels(
+            minX,
+            minY,
+            bufferWidth,
+            bufferHeight,
+            PixelFormat.getIntArgbPreInstance(),
+            buffer,
+            0,
+            bufferWidth
+        );
+    }
+
+    private void applyCircleTool(final Point2D center, final int size, final Color color) {
+        int radius = size / 2;
+        int centerX = (int) center.getX();
+        int centerY = (int) center.getY();
+
+        // Calculate the squared radius to avoid using Math.sqrt
+        int radiusSquared = radius * radius;
+
+        PixelWriter pixelWriter = this.fogImage.getPixelWriter();
+
+        for (int x = centerX - radius; x <= centerX + radius; x++) {
+            for (int y = centerY - radius; y <= centerY + radius; y++) {
+                int dx = x - centerX;
+                int dy = y - centerY;
+                if (dx * dx + dy * dy <= radiusSquared &&
+                  x >= 0 && x < this.imageWidth && y >= 0 && y < this.imageHeight) {
+                    // Inside the circular region, within image bounds
+                    // Set the pixel to the desired color
+                    pixelWriter.setColor(x, y, color);
+                }
+            }
+        }
     }
 
     private void bindSlider(

@@ -9,7 +9,9 @@ import javafx.scene.image.Image;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
 import javafx.scene.image.WritablePixelFormat;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.transform.Affine;
 import javafx.stage.Stage;
 
@@ -197,6 +199,14 @@ public class PlayersController implements DungeonMasterPlayersEvents {
         );
 
         this.draw();
+    }
+
+    @Override
+    public void onBackgroundColorChanged(final Color color) {
+        // Update top level component's background color
+        // Set pane background color without css
+        Background background = Background.fill(color);
+        this.root.setBackground(background);
     }
 
     private void draw() {
