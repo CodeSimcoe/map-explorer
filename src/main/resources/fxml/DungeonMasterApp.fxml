@@ -49,155 +49,126 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
-
-<HBox onKeyPressed="#manageKeyPress" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.codesimcoe.mapexplorer.DungeonMasterController">
-   <children>
-      <StackPane fx:id="dmStackPane" onDragDropped="#manageDragDrop" onDragOver="#manageDragOver" onMouseDragged="#manageMouseDragged" onMouseEntered="#manageMouseEntered" onMouseExited="#manageMouseExited" onMouseMoved="#manageMouseMoved" onMousePressed="#manageMousePressed" onMouseReleased="#manageMouseReleased" onScroll="#manageMouseWheel">
-         <children>
-            <Canvas fx:id="imageCanvas" focusTraversable="true" height="200.0" width="200.0" />
-            <Canvas fx:id="fogCanvas" height="200.0" width="200.0" />
-            <Pane>
-               <children>
-                  <Rectangle fx:id="rectangleToolOverlay" fill="TRANSPARENT" strokeType="INSIDE" />
-                  <Circle fx:id="circleToolOverlay" fill="TRANSPARENT" strokeType="INSIDE" />
-               </children>
-            </Pane>
-         </children>
-      </StackPane>
-      <VBox prefWidth="200.0" spacing="5.0">
-         <children>
-            <HBox spacing="5.0">
-               <children>
-                  <Label text="Fog opacity" />
-                  <Label text="(ctrl + wheel)">
-                     <font>
-                        <Font size="10.0" />
-                     </font>
-                  </Label>
-               </children>
-            </HBox>
-            <Slider fx:id="fogOpacitySlider" max="1.0" />
-            <HBox spacing="5.0">
-               <children>
-                  <Label text="Tool size" />
-                  <Label text="(shift + wheel)">
-                     <font>
-                        <Font size="10.0" />
-                     </font>
-                  </Label>
-               </children>
-               <VBox.margin>
-                  <Insets />
-               </VBox.margin>
-            </HBox>
-            <Slider fx:id="toolSizeSlider" max="200.0" />
-            <Label text="Tool shape" />
-            <HBox spacing="5.0">
-               <children>
-                  <ToggleButton fx:id="toolSquareShapeToggleButton" mnemonicParsing="false" prefWidth="25.0">
-                     <graphic>
-                        <ImageView pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/square.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                     <toggleGroup>
-                        <ToggleGroup fx:id="toolShapeToggleGroup" />
-                     </toggleGroup>
-                  </ToggleButton>
-                  <ToggleButton fx:id="toolCircleShapeToggleButton" mnemonicParsing="false" prefWidth="25.0" toggleGroup="$toolShapeToggleGroup">
-                     <graphic>
-                        <ImageView pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/circle.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                  </ToggleButton>
-               </children>
-            </HBox>
-            <HBox spacing="5.0">
-               <children>
-                  <ToggleButton fx:id="fogToolToggleButton" mnemonicParsing="false" prefWidth="25.0">
-                     <graphic>
-                        <ImageView pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/brush.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                     <toggleGroup>
-                        <ToggleGroup fx:id="toolModeToggleGroup" />
-                     </toggleGroup>
-                  </ToggleButton>
-                  <ToggleButton fx:id="eraserToolToggleButton" mnemonicParsing="false" prefWidth="25.0" toggleGroup="$toolModeToggleGroup">
-                     <graphic>
-                        <ImageView pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/eraser.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                  </ToggleButton>
-               </children>
-               <VBox.margin>
-                  <Insets />
-               </VBox.margin>
-            </HBox>
-            <Label text="Rotate" />
-            <HBox spacing="5.0">
-               <children>
-                  <Button fx:id="rotateCounterClockwise" mnemonicParsing="false" onAction="#rotateCounterClockwise" prefWidth="25.0">
-                     <graphic>
-                        <ImageView pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/rotate-counter-clockwise.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                  </Button>
-                  <Button fx:id="rotateClockwise" mnemonicParsing="false" onAction="#rotateClockwise">
-                     <graphic>
-                        <ImageView pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../images/rotate-clockwise.png" />
-                           </image>
-                        </ImageView>
-                     </graphic>
-                  </Button>
-               </children>
-            </HBox>
-            <Label text="Background" />
-            <HBox>
-               <children>
-                  <ColorPicker fx:id="backgroundColorPicker" />
-               </children>
-            </HBox>
-            <Button mnemonicParsing="false" onAction="#restoreFog" prefWidth="100.0" text="Restore fog" />
-            <Button mnemonicParsing="false" onAction="#commit" prefWidth="100.0" text="Commit" />
-            <Button mnemonicParsing="false" onAction="#save" prefWidth="100.0" text="Save">
-               <graphic>
-                  <ImageView pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../images/save.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
+<HBox onKeyPressed="#manageKeyPress" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.codesimcoe.mapexplorer.DungeonMasterController">
+    <StackPane fx:id="dmStackPane" onDragDropped="#manageDragDrop" onDragOver="#manageDragOver"
+               onMouseDragged="#manageMouseDragged" onMouseEntered="#manageMouseEntered"
+               onMouseExited="#manageMouseExited" onMouseMoved="#manageMouseMoved"
+               onMousePressed="#manageMousePressed" onMouseReleased="#manageMouseReleased"
+               onScroll="#manageMouseWheel">
+        <Canvas fx:id="imageCanvas" focusTraversable="true" height="200.0" width="200.0"/>
+        <Canvas fx:id="fogCanvas" height="200.0" width="200.0"/>
+        <Pane prefWidth="141.0">
+            <Rectangle fx:id="rectangleToolOverlay" fill="TRANSPARENT" strokeType="INSIDE"/>
+            <Circle fx:id="circleToolOverlay" fill="TRANSPARENT" strokeType="INSIDE"/>
+        </Pane>
+    </StackPane>
+    <VBox prefWidth="200.0" spacing="5.0">
+        <padding>
+            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0"/>
+        </padding>
+        <HBox spacing="5.0">
+            <Label text="Fog opacity"/>
+            <Label text="(ctrl + wheel)">
+                <font>
+                    <Font size="10.0"/>
+                </font>
+            </Label>
+        </HBox>
+        <Slider fx:id="fogOpacitySlider" max="1.0"/>
+        <HBox spacing="5.0">
+            <VBox.margin>
+                <Insets/>
+            </VBox.margin>
+            <Label text="Tool size"/>
+            <Label text="(shift + wheel)">
+                <font>
+                    <Font size="10.0"/>
+                </font>
+            </Label>
+        </HBox>
+        <Slider fx:id="toolSizeSlider" max="200.0"/>
+        <Label text="Tool shape"/>
+        <HBox spacing="5.0">
+            <ToggleButton fx:id="toolSquareShapeToggleButton" mnemonicParsing="false" prefWidth="25.0">
+                <graphic>
+                    <ImageView pickOnBounds="true" preserveRatio="true">
+                        <Image url="@../images/square.png"/>
+                    </ImageView>
+                </graphic>
+                <toggleGroup>
+                    <ToggleGroup fx:id="toolShapeToggleGroup"/>
+                </toggleGroup>
+            </ToggleButton>
+            <ToggleButton fx:id="toolCircleShapeToggleButton" mnemonicParsing="false" prefWidth="25.0"
+                          toggleGroup="$toolShapeToggleGroup">
+                <graphic>
+                    <ImageView pickOnBounds="true" preserveRatio="true">
+                        <Image url="@../images/circle.png"/>
+                    </ImageView>
+                </graphic>
+            </ToggleButton>
+        </HBox>
+        <HBox spacing="5.0">
+            <VBox.margin>
+                <Insets/>
+            </VBox.margin>
+            <ToggleButton fx:id="fogToolToggleButton" mnemonicParsing="false" prefWidth="25.0">
+                <graphic>
+                    <ImageView pickOnBounds="true" preserveRatio="true">
+                        <Image url="@../images/brush.png"/>
+                    </ImageView>
+                </graphic>
+                <toggleGroup>
+                    <ToggleGroup fx:id="toolModeToggleGroup"/>
+                </toggleGroup>
+            </ToggleButton>
+            <ToggleButton fx:id="eraserToolToggleButton" mnemonicParsing="false" prefWidth="25.0"
+                          toggleGroup="$toolModeToggleGroup">
+                <graphic>
+                    <ImageView pickOnBounds="true" preserveRatio="true">
+                        <Image url="@../images/eraser.png"/>
+                    </ImageView>
+                </graphic>
+            </ToggleButton>
+        </HBox>
+        <Label text="Rotate"/>
+        <HBox spacing="5.0">
+            <Button fx:id="rotateCounterClockwise" mnemonicParsing="false" onAction="#rotateCounterClockwise"
+                    prefWidth="25.0">
+                <graphic>
+                    <ImageView pickOnBounds="true" preserveRatio="true">
+                        <Image url="@../images/rotate-counter-clockwise.png"/>
+                    </ImageView>
+                </graphic>
             </Button>
-            <Button mnemonicParsing="false" onAction="#openLoadSaveFileChooser" prefWidth="100.0" text="Load">
-               <graphic>
-                  <ImageView pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../images/load.png" />
-                     </image>
-                  </ImageView>
-               </graphic>
+            <Button fx:id="rotateClockwise" mnemonicParsing="false" onAction="#rotateClockwise">
+                <graphic>
+                    <ImageView pickOnBounds="true" preserveRatio="true">
+                        <Image url="@../images/rotate-clockwise.png"/>
+                    </ImageView>
+                </graphic>
             </Button>
-         </children>
-         <padding>
-            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
-         </padding>
-      </VBox>
-   </children>
+        </HBox>
+        <Label text="Background"/>
+        <HBox>
+            <ColorPicker fx:id="backgroundColorPicker"/>
+        </HBox>
+        <Button mnemonicParsing="false" onAction="#restoreFog" prefWidth="100.0" text="Restore fog"/>
+        <Button mnemonicParsing="false" onAction="#commit" prefWidth="100.0" text="Commit"/>
+        <Button mnemonicParsing="false" onAction="#save" prefWidth="100.0" text="Save">
+            <graphic>
+                <ImageView pickOnBounds="true" preserveRatio="true">
+                    <Image url="@../images/save.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+        <Button mnemonicParsing="false" onAction="#openLoadSaveFileChooser" prefWidth="100.0" text="Load">
+            <graphic>
+                <ImageView pickOnBounds="true" preserveRatio="true">
+                    <Image url="@../images/load.png"/>
+                </ImageView>
+            </graphic>
+        </Button>
+    </VBox>
 </HBox>

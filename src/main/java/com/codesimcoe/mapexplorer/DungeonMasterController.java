@@ -520,7 +520,6 @@ public class DungeonMasterController {
 
     @FXML
     private void manageKeyPress(final KeyEvent event) {
-
         KeyCode code = event.getCode();
         switch (code) {
             case ADD -> this.updateToolSize(TOOL_SIZE_STEP);
@@ -667,12 +666,17 @@ public class DungeonMasterController {
     }
 
     private void applyCircleTool(final Point2D center, final int size, final Color color) {
+
         int radius = size / 2;
         int centerX = (int) center.getX();
         int centerY = (int) center.getY();
 
         // Calculate the squared radius to avoid using Math.sqrt
         int radiusSquared = radius * radius;
+
+//        int roughnessLevels = 5;
+//        int[] rs = new int[roughnessLevels];
+//        IntStream.range(0, roughnessLevels).forEach(i -> rs[i] = (radius - i) * (radius - i));
 
         PixelWriter pixelWriter = this.fogImage.getPixelWriter();
 
@@ -688,6 +692,29 @@ public class DungeonMasterController {
                 }
             }
         }
+
+
+//        int radius = size / 2;
+//        int centerX = (int) center.getX();
+//        int centerY = (int) center.getY();
+//
+//        // Calculate the squared radius to avoid using Math.sqrt
+//        int radiusSquared = radius * radius;
+//
+//        PixelWriter pixelWriter = this.fogImage.getPixelWriter();
+//
+//        for (int x = centerX - radius; x <= centerX + radius; x++) {
+//            for (int y = centerY - radius; y <= centerY + radius; y++) {
+//                int dx = x - centerX;
+//                int dy = y - centerY;
+//                if (dx * dx + dy * dy <= radiusSquared &&
+//                  x >= 0 && x < this.imageWidth && y >= 0 && y < this.imageHeight) {
+//                    // Inside the circular region, within image bounds
+//                    // Set the pixel to the desired color
+//                    pixelWriter.setColor(x, y, color);
+//                }
+//            }
+//        }
     }
 
     private void bindSlider(

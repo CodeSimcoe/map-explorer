@@ -8,7 +8,7 @@ import javafx.scene.paint.Color;
  */
 public interface DungeonMasterPlayersEvents {
 
-    void onCommit(Image mapImage, Image fogImage);
+  void onCommit(Image mapImage, Image fogImage);
 
-    void onBackgroundColorChanged(Color color);
+  void onBackgroundColorChanged(Color color);
 }
